@@ -164,7 +164,7 @@ func sync(ips []string) error {
 			Name:    options.DNSName,
 			Content: ip,
 			TTL:     120,
-			Proxied: true,
+			Proxied: false,
 		})
 		if err != nil {
 			return errors.Wrapf(err, "failed to create dns record zone-id=%s name=%s ip=%s",
