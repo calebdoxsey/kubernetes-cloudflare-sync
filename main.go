@@ -67,6 +67,8 @@ func main() {
 		log.Println("CloudflareTTL config not found or incorrect, defaulting to 120")
 		cloudflareTTL = 120
 	}
+	
+	log.SetOutput(os.Stdout)
 
 	cfg, err := rest.InClusterConfig()
 	if err != nil {
