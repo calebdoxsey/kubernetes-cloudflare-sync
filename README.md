@@ -5,16 +5,16 @@ This App is intended to run in your Kubernetes Cluster on GKE and sync DNS recor
 ## Example Usage
 You can read this article to get an idea on why you would want to use it: http://www.doxsey.net/blog/kubernetes--the-surprisingly-affordable-platform-for-personal-projects
 
-# Build
+### Build
 GKE provides you with a private cotainer image repository for each cluster.
 The following two commands build the app and publish into your cluster-specific repository.
 
 `docker build -t gcr.io/PROJECT_ID/kubernetes-cloudflare-sync:latest .`
 `docker push gcr.io/PROJECT_ID/kubernetes-cloudflare-sync:latest`
 
-# Configure
+### Configure
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -56,16 +56,16 @@ The app needs to types of permissions:
 2. get a list of nodes in the cluster and read their IP
 
 The former requires just the API keys from cloudflare. We can store them as secret in the cluster by running:
+
 `kubectl create secret generic cloudflare --from-literal=email='EMAIL' --from-literal=api-key='API_KEY'`
 
 For the latter we create a `clusterrolebinding` in our cluster by running:
+
 `kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user YOUR_EMAIL_ADDRESS_HERE`
 
 **Important:** Make sure this is the same E-Mail as you use for running kubectl.
 
-and then applying:
-
-```
+```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -93,3 +93,7 @@ subjects:
   name: kubernetes-cloudflare-sync
   namespace: default
 ```
+
+Applying all configs by running:
+
+`kubectl apply -f .`
