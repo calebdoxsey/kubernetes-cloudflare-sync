@@ -57,7 +57,7 @@ The app needs to types of permissions:
 
 The former requires just the API keys from cloudflare. We can store them as secret in the cluster by running:
 
-`kubectl create secret generic cloudflare --from-literal=email='EMAIL' --from-literal=api-key='API_KEY'`
+`kubectl create secret generic cloudflare --from-literal=email=YOUR_CLOUDFLARE_ACCOUNT_EMAIL_ADDRESS_HERE --from-literal=api-key=YOUR_CLOUDFLARE_GLOBAL_API_KEY_HERE`
 
 For the latter we create a `clusterrolebinding` in our cluster by running:
 
