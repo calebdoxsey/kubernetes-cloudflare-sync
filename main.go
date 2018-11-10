@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
 
 	cloudflare "github.com/cloudflare/cloudflare-go"
 	"github.com/pkg/errors"
@@ -23,7 +23,7 @@ var options = struct {
 	CloudflareAPIEmail string
 	CloudflareAPIKey   string
 	CloudflareProxy    string
-	CloudflareTTL	   string
+	CloudflareTTL      string
 	DNSName            string
 }{
 	CloudflareAPIEmail: os.Getenv("CF_API_EMAIL"),
