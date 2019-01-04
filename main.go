@@ -25,12 +25,16 @@ var options = struct {
 	CloudflareProxy    string
 	CloudflareTTL      string
 	DNSName            string
+	UseInternalIP      bool
+	NodeSelector       string
 }{
 	CloudflareAPIEmail: os.Getenv("CF_API_EMAIL"),
 	CloudflareAPIKey:   os.Getenv("CF_API_KEY"),
 	CloudflareProxy:    os.Getenv("CF_PROXY"),
 	CloudflareTTL:      os.Getenv("CF_TTL"),
 	DNSName:            os.Getenv("DNS_NAME"),
+	UseInternalIP:      os.Getenv("USE_INTERNAL_IP") != "",
+	NodeSelector:       os.Getenv("NODE_SELECTOR"),
 }
 
 func main() {
@@ -39,6 +43,8 @@ func main() {
 	flag.StringVar(&options.CloudflareAPIKey, "cloudflare-api-key", options.CloudflareAPIKey, "the key to use for cloudflare")
 	flag.StringVar(&options.CloudflareProxy, "cloudflare-proxy", options.CloudflareProxy, "enable cloudflare proxy on dns (default false)")
 	flag.StringVar(&options.CloudflareTTL, "cloudflare-ttl", options.CloudflareTTL, "ttl for dns (default 120)")
+	flag.BoolVar(&options.UseInternalIP, "use-internal-ip", options.UseInternalIP, "use internal ips too if external ip's are not available")
+	flag.StringVar(&options.NodeSelector, "node-selector", options.NodeSelector, "node selector query")
 	flag.Parse()
 
 	if options.CloudflareAPIEmail == "" {
@@ -83,24 +89,48 @@ func main() {
 	stop := make(chan struct{})
 	defer close(stop)
 
+	nodeSelector := labels.NewSelector()
+	if options.NodeSelector != "" {
+		selector, err := labels.Parse(options.NodeSelector)
+		if err != nil {
+			log.Printf("node selector is invalid: %v\n", err)
+		} else {
+			nodeSelector = selector
+		}
+	}
+
 	factory := informers.NewSharedInformerFactory(client, time.Minute)
 	lister := factory.Core().V1().Nodes().Lister()
 	var lastIPs []string
 	resync := func() {
 		log.Println("resyncing")
-		nodes, err := lister.List(labels.NewSelector())
+		nodes, err := lister.List(nodeSelector)
 		if err != nil {
-			log.Fatalln("failed to list nodes", err)
+			log.Println("failed to list nodes", err)
 		}
 
 		var ips []string
 		for _, node := range nodes {
-			for _, addr := range node.Status.Addresses {
-				if addr.Type == core_v1.NodeExternalIP {
-					ips = append(ips, addr.Address)
+			if nodeIsReady(node) {
+				for _, addr := range node.Status.Addresses {
+					if addr.Type == core_v1.NodeExternalIP {
+						ips = append(ips, addr.Address)
+					}
 				}
 			}
 		}
+		if options.UseInternalIP && len(ips) == 0 {
+			for _, node := range nodes {
+				if nodeIsReady(node) {
+					for _, addr := range node.Status.Addresses {
+						if addr.Type == core_v1.NodeInternalIP {
+							ips = append(ips, addr.Address)
+						}
+					}
+				}
+			}
+		}
+
 		sort.Strings(ips)
 		log.Println("ips:", ips)
 		if strings.Join(ips, ",") == strings.Join(lastIPs, ",") {
@@ -111,7 +141,7 @@ func main() {
 
 		err = sync(ips, dnsNames, cloudflareTTL, cloudflareProxy)
 		if err != nil {
-			log.Fatalln("failed to sync", err)
+			log.Println("failed to sync", err)
 		}
 	}
 
@@ -130,6 +160,16 @@ func main() {
 	informer.Run(stop)
 
 	select {}
+}
+
+func nodeIsReady(node *core_v1.Node) bool {
+	for _, condition := range node.Status.Conditions {
+		if condition.Type == core_v1.NodeReady && condition.Status == core_v1.ConditionTrue {
+			return true
+		}
+	}
+
+	return false
 }
 
 func sync(ips []string, dnsNames []string, cloudflareTTL int, cloudflareProxy bool) error {
