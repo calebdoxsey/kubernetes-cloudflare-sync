@@ -26,6 +26,7 @@ var options = struct {
 	CloudflareTTL      string
 	DNSName            string
 	UseInternalIP      bool
+	NodeSelector       string
 }{
 	CloudflareAPIEmail: os.Getenv("CF_API_EMAIL"),
 	CloudflareAPIKey:   os.Getenv("CF_API_KEY"),
@@ -33,6 +34,7 @@ var options = struct {
 	CloudflareTTL:      os.Getenv("CF_TTL"),
 	DNSName:            os.Getenv("DNS_NAME"),
 	UseInternalIP:      os.Getenv("USE_INTERNAL_IP") != "",
+	NodeSelector:       os.Getenv("NODE_SELECTOR"),
 }
 
 func main() {
@@ -42,6 +44,7 @@ func main() {
 	flag.StringVar(&options.CloudflareProxy, "cloudflare-proxy", options.CloudflareProxy, "enable cloudflare proxy on dns (default false)")
 	flag.StringVar(&options.CloudflareTTL, "cloudflare-ttl", options.CloudflareTTL, "ttl for dns (default 120)")
 	flag.BoolVar(&options.UseInternalIP, "use-internal-ip", options.UseInternalIP, "use internal ips too if external ip's are not available")
+	flag.StringVar(&options.NodeSelector, "node-selector", options.NodeSelector, "node selector query")
 	flag.Parse()
 
 	if options.CloudflareAPIEmail == "" {
@@ -86,12 +89,22 @@ func main() {
 	stop := make(chan struct{})
 	defer close(stop)
 
+	nodeSelector := labels.NewSelector()
+	if options.NodeSelector != "" {
+		selector, err := labels.Parse(options.NodeSelector)
+		if err != nil {
+			log.Printf("node selector is invalid: %v\n", err)
+		} else {
+			nodeSelector = selector
+		}
+	}
+
 	factory := informers.NewSharedInformerFactory(client, time.Minute)
 	lister := factory.Core().V1().Nodes().Lister()
 	var lastIPs []string
 	resync := func() {
 		log.Println("resyncing")
-		nodes, err := lister.List(labels.NewSelector())
+		nodes, err := lister.List(nodeSelector)
 		if err != nil {
 			log.Println("failed to list nodes", err)
 		}
