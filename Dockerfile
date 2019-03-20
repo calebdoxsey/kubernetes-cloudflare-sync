@@ -1,4 +1,4 @@
-FROM golang:1.11.2-alpine as build
+FROM golang:1.12-alpine as build
 ENV GO111MODULE=on
 
 RUN apk add --update --no-cache build-base git
@@ -12,10 +12,10 @@ WORKDIR /src
 
 
 
-COPY go.mod .
+COPY go.mod ./
 RUN go mod download
 
-COPY *.go .
+COPY *.go ./
 RUN CGO_ENABLED=0 go build -o /bin/kubernetes-cloudflare-sync .
 
 FROM scratch
@@ -28,7 +28,7 @@ COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # practice.
 COPY --from=0 /etc_passwd /etc/passwd
 
-COPY --from=build /bin/kubernetes-cloudflare-sync /bin/kubernetes-cloudflare-sync 
+COPY --from=build /bin/kubernetes-cloudflare-sync /bin/kubernetes-cloudflare-sync
 
 USER nobody
 
