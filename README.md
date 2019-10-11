@@ -53,7 +53,7 @@ spec:
 ```
 **Important:** Make sure to replace `PROJECT_ID`
 
-The app needs to types of permissions:
+The app needs two types of permissions:
 1. talk to cloudflare and update DNS
 2. get a list of nodes in the cluster and read their IP
 
