@@ -24,6 +24,7 @@ var options = struct {
 	CloudflareTTL      string
 	DNSName            string
 	UseInternalIP      bool
+  SkipExternalIP     bool
 	NodeSelector       string
 }{
 	CloudflareAPIEmail: os.Getenv("CF_API_EMAIL"),
