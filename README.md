@@ -99,3 +99,13 @@ subjects:
 Applying all configs by running:
 
 `kubectl apply -f .`
+
+#### ENV
+* ```CF_API_EMAIL``` The email address to use for cloudflare
+* ```CF_API_KEY``` The key to use for cloudflare
+* ```CF_PROXY``` Enable cloudflare proxy on dns (default false)
+* ```CF_TTL``` TTL for dns (default 120)
+* ```DNS_NAME``` The dns name for the nodes, comma-separated for multiple (same root)
+* ```USE_INTERNAL_IP``` Use internal ips too if external ip's are not available
+* ```SKIP_EXTERNAL_IP``` Don't sync external IPs (use in conjunction with --use-internal-ip)
+* ```NODE_SELECTOR``` Node selector query
