@@ -1,5 +1,4 @@
-FROM golang:1.12-alpine as build
-ENV GO111MODULE=on
+FROM golang:1.17-alpine as build
 
 RUN apk add --update --no-cache build-base git
 
@@ -12,7 +11,7 @@ WORKDIR /src
 
 
 
-COPY go.mod ./
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY *.go ./
