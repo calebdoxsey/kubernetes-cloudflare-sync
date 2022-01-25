@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	cloudflare "github.com/cloudflare/cloudflare-go"
@@ -11,13 +12,14 @@ type mockAPI struct {
 	listZones func(z ...string) ([]cloudflare.Zone, error)
 }
 
-func (m mockAPI) ListZones(z ...string) ([]cloudflare.Zone, error) {
+func (m mockAPI) ListZones(ctx context.Context, z ...string) ([]cloudflare.Zone, error) {
 	return m.listZones(z...)
 }
 
 func TestFindZoneID(t *testing.T) {
+	ctx := context.Background()
 	t.Run("subdomain", func(t *testing.T) {
-		zoneID, err := findZoneID(mockAPI{
+		zoneID, err := findZoneID(ctx, mockAPI{
 			listZones: func(z ...string) ([]cloudflare.Zone, error) {
 				return []cloudflare.Zone{
 					{ID: "1", Name: "example.com"},
@@ -28,7 +30,7 @@ func TestFindZoneID(t *testing.T) {
 		assert.Equal(t, "1", zoneID)
 	})
 	t.Run("domain", func(t *testing.T) {
-		zoneID, err := findZoneID(mockAPI{
+		zoneID, err := findZoneID(ctx, mockAPI{
 			listZones: func(z ...string) ([]cloudflare.Zone, error) {
 				return []cloudflare.Zone{
 					{ID: "1", Name: "example.com"},
@@ -39,7 +41,7 @@ func TestFindZoneID(t *testing.T) {
 		assert.Equal(t, "1", zoneID)
 	})
 	t.Run("partial domain", func(t *testing.T) {
-		zoneID, err := findZoneID(mockAPI{
+		zoneID, err := findZoneID(ctx, mockAPI{
 			listZones: func(z ...string) ([]cloudflare.Zone, error) {
 				return []cloudflare.Zone{
 					{ID: "1", Name: "example.com"}, // a bare suffix match would inadvertently match this domain
@@ -51,7 +53,7 @@ func TestFindZoneID(t *testing.T) {
 		assert.Equal(t, "2", zoneID)
 	})
 	t.Run(".co.uk", func(t *testing.T) {
-		zoneID, err := findZoneID(mockAPI{
+		zoneID, err := findZoneID(ctx, mockAPI{
 			listZones: func(z ...string) ([]cloudflare.Zone, error) {
 				return []cloudflare.Zone{
 					{ID: "1", Name: "example.co.uk"},

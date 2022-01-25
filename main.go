@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"os"
@@ -24,7 +25,7 @@ var options = struct {
 	CloudflareTTL      string
 	DNSName            string
 	UseInternalIP      bool
-  SkipExternalIP     bool
+	SkipExternalIP     bool
 	NodeSelector       string
 }{
 	CloudflareAPIEmail: os.Getenv("CF_API_EMAIL"),
@@ -142,7 +143,7 @@ func main() {
 		}
 		lastIPs = ips
 
-		err = sync(ips, dnsNames, cloudflareTTL, cloudflareProxy)
+		err = sync(context.Background(), ips, dnsNames, cloudflareTTL, cloudflareProxy)
 		if err != nil {
 			log.Println("failed to sync", err)
 		}
