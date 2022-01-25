@@ -64,3 +64,21 @@ func TestFindZoneID(t *testing.T) {
 		assert.Equal(t, "1", zoneID)
 	})
 }
+
+func TestNewCloudflareClient(t *testing.T) {
+	t.Run("token", func(t *testing.T) {
+		api, err := newCloudflareClient("TEST", "", "")
+		assert.NoError(t, err)
+		assert.Equal(t, "TEST", api.APIToken)
+	})
+	t.Run("email", func(t *testing.T) {
+		api, err := newCloudflareClient("", "EMAIL", "KEY")
+		assert.NoError(t, err)
+		assert.Equal(t, "EMAIL", api.APIEmail)
+		assert.Equal(t, "KEY", api.APIKey)
+	})
+	t.Run("missing", func(t *testing.T) {
+		_, err := newCloudflareClient("", "", "")
+		assert.Error(t, err)
+	})
+}
