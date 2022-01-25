@@ -1,8 +1,7 @@
 # Kubernetes Cloudflare Sync
 
-[![Docker Repository on Quay](https://quay.io/repository/calebdoxsey/kubernetes-cloudflare-sync/status "Docker Repository on Quay")](https://quay.io/repository/calebdoxsey/kubernetes-cloudflare-sync)
 
-This App is intended to run in your Kubernetes Cluster on GKE and sync DNS records on Cloudflare with your nodes IPs.
+This App is intended to run in your Kubernetes Cluster and sync DNS records on Cloudflare with your nodes' IPs.
 
 ## Example Usage
 You can read this article to get an idea on why you would want to use it: http://www.doxsey.net/blog/kubernetes--the-surprisingly-affordable-platform-for-personal-projects
@@ -103,6 +102,7 @@ Applying all configs by running:
 #### ENV
 * ```CF_API_EMAIL``` The email address to use for cloudflare
 * ```CF_API_KEY``` The key to use for cloudflare
+* ```CF_API_TOKEN``` The token to use for cloudflare (in lieu of email and key)
 * ```CF_PROXY``` Enable cloudflare proxy on dns (default false)
 * ```CF_TTL``` TTL for dns (default 120)
 * ```DNS_NAME``` The dns name for the nodes, comma-separated for multiple (same root)

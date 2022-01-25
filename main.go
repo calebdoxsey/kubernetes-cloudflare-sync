@@ -21,6 +21,7 @@ import (
 var options = struct {
 	CloudflareAPIEmail string
 	CloudflareAPIKey   string
+	CloudflareAPIToken string
 	CloudflareProxy    string
 	CloudflareTTL      string
 	DNSName            string
@@ -30,6 +31,7 @@ var options = struct {
 }{
 	CloudflareAPIEmail: os.Getenv("CF_API_EMAIL"),
 	CloudflareAPIKey:   os.Getenv("CF_API_KEY"),
+	CloudflareAPIToken: os.Getenv("CF_API_TOKEN"),
 	CloudflareProxy:    os.Getenv("CF_PROXY"),
 	CloudflareTTL:      os.Getenv("CF_TTL"),
 	DNSName:            os.Getenv("DNS_NAME"),
@@ -42,6 +44,7 @@ func main() {
 	flag.StringVar(&options.DNSName, "dns-name", options.DNSName, "the dns name for the nodes, comma-separated for multiple (same root)")
 	flag.StringVar(&options.CloudflareAPIEmail, "cloudflare-api-email", options.CloudflareAPIEmail, "the email address to use for cloudflare")
 	flag.StringVar(&options.CloudflareAPIKey, "cloudflare-api-key", options.CloudflareAPIKey, "the key to use for cloudflare")
+	flag.StringVar(&options.CloudflareAPIToken, "cloudflare-api-token", options.CloudflareAPIToken, "the token to use for cloudflare")
 	flag.StringVar(&options.CloudflareProxy, "cloudflare-proxy", options.CloudflareProxy, "enable cloudflare proxy on dns (default false)")
 	flag.StringVar(&options.CloudflareTTL, "cloudflare-ttl", options.CloudflareTTL, "ttl for dns (default 120)")
 	flag.BoolVar(&options.UseInternalIP, "use-internal-ip", options.UseInternalIP, "use internal ips too if external ip's are not available")
@@ -49,13 +52,10 @@ func main() {
 	flag.StringVar(&options.NodeSelector, "node-selector", options.NodeSelector, "node selector query")
 	flag.Parse()
 
-	if options.CloudflareAPIEmail == "" {
+	if options.CloudflareAPIToken == "" &&
+		(options.CloudflareAPIEmail == "" || options.CloudflareAPIKey == "") {
 		flag.Usage()
-		log.Fatalln("cloudflare api email is required")
-	}
-	if options.CloudflareAPIKey == "" {
-		flag.Usage()
-		log.Fatalln("cloudflare api key is required")
+		log.Fatalln("cloudflare api token or email+key is required")
 	}
 
 	dnsNames := strings.Split(options.DNSName, ",")

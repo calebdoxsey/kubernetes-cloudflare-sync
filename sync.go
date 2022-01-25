@@ -10,7 +10,7 @@ import (
 )
 
 func sync(ctx context.Context, ips []string, dnsNames []string, cloudflareTTL int, cloudflareProxy bool) error {
-	api, err := cloudflare.New(options.CloudflareAPIKey, options.CloudflareAPIEmail)
+	api, err := newCloudflareClient(options.CloudflareAPIToken, options.CloudflareAPIEmail, options.CloudflareAPIKey)
 	if err != nil {
 		return errors.Wrap(err, "failed to access cloudflare api")
 	}
@@ -112,4 +112,13 @@ func findZoneID(ctx context.Context, api interface {
 	}
 
 	return "", errors.New("zone id not found")
+}
+
+func newCloudflareClient(token, email, key string) (api *cloudflare.API, err error) {
+	if token != "" {
+		api, err = cloudflare.NewWithAPIToken(token)
+	} else {
+		api, err = cloudflare.New(key, email)
+	}
+	return api, err
 }
